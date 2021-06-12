@@ -20,10 +20,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUi() {
-        val btn = findViewById<Button>(R.id.button)
+        val btnDisplay = findViewById<Button>(R.id.btn_display)
+        val btnDecode = findViewById<Button>(R.id.btn_decode)
+        val btnEncode = findViewById<Button>(R.id.btn_encode)
+        val btnTest = findViewById<Button>(R.id.btn_test)
 
-        btn.setOnClickListener {
+        btnDisplay.setOnClickListener {
             showModel()
+        }
+        btnDecode.setOnClickListener {
+        }
+        btnEncode.setOnClickListener {
+        }
+        btnTest.setOnClickListener {
         }
     }
 
