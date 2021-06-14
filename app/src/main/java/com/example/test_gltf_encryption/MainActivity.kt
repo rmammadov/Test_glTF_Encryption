@@ -1,9 +1,11 @@
 package com.example.test_gltf_encryption
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.io.File
@@ -11,6 +13,12 @@ import java.io.IOException
 import java.nio.charset.Charset
 
 class MainActivity : AppCompatActivity() {
+
+    private val FILE_NAME: String = "data.blob"
+    private val CHARSET: Charset = Charsets.UTF_8
+
+    lateinit var tvDetails: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,13 +32,16 @@ class MainActivity : AppCompatActivity() {
         val btnDecode = findViewById<Button>(R.id.btn_decode)
         val btnEncode = findViewById<Button>(R.id.btn_encode)
         val btnTest = findViewById<Button>(R.id.btn_test)
+        tvDetails = findViewById<TextView>(R.id.tv_details)
 
         btnDisplay.setOnClickListener {
             showModel()
         }
         btnDecode.setOnClickListener {
+            binaryFromFileToJson(FILE_NAME)
         }
         btnEncode.setOnClickListener {
+            jsonToFileAsBinary("Fox.gltf")
         }
         btnTest.setOnClickListener {
         }
@@ -52,6 +63,22 @@ class MainActivity : AppCompatActivity() {
         startActivity(sceneViewerIntent)
     }
 
+    private fun jsonToFileAsBinary(nameOfAsset: String) {
+        val jsonString = getJsonFromAsset(nameOfAsset)
+        val byteArray = getBinaryFromString(jsonString, CHARSET)
+
+        writeBytesToFile(FILE_NAME, byteArray)
+    }
+
+    private fun binaryFromFileToJson(nameOfFile: String) {
+        val byteArray = readBytesFromFile(nameOfFile)
+        val jsonString = getStringFromBinary(byteArray, CHARSET)
+
+        val jsonObject = stringToJson(jsonString)
+
+        tvDetails.text = jsonString
+    }
+
     /**
      * Get Json from Asset
      */
@@ -62,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             val inputStream = assets.open(nameOfAsset)
             val size = inputStream.available()
             val buffer = ByteArray(size)
-            val charset: Charset = Charsets.UTF_8
+            val charset: Charset = CHARSET
             inputStream.read(buffer)
             inputStream.close()
             jsonString = String(buffer, charset)
@@ -88,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private fun getBinaryFromString(string: String, charset: Charset): ByteArray {
         val charset = charset
 
-        return string.toByteArray()
+        return string.toByteArray(charset)
     }
 
     /**
@@ -103,8 +130,8 @@ class MainActivity : AppCompatActivity() {
     /**
      * Write bytes to the file
      */
-    private fun writeBytesToFile(name:String, byteArray: ByteArray) {
-        val fileName = "data.txt"
+    private fun writeBytesToFile(name: String, byteArray: ByteArray) {
+        val fileName = name
 
         var file = File(fileName)
 
@@ -134,6 +161,18 @@ class MainActivity : AppCompatActivity() {
 
         return file.readBytes()
     }
+
+    @Throws(IOException::class)
+    fun getFileFromAssets(context: Context, fileName: String): File = File(context.cacheDir, fileName)
+        .also {
+            if (!it.exists()) {
+                it.outputStream().use { cache ->
+                    context.assets.open(fileName).use { inputStream ->
+                        inputStream.copyTo(cache)
+                    }
+                }
+            }
+        }
 
 //    private fun getJsonFromString() : JSONObject {
 //
